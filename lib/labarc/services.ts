@@ -7,6 +7,7 @@
  * (e.g. `equipmentApiService`) without changing any UI component.
  */
 import * as db from './data'
+import { isLabArcApiConfigured, labarcApi } from './api'
 import type {
   AlertItem,
   Device,
@@ -46,6 +47,18 @@ export const incidentService = {
 
 export const inventoryService = {
   list: (): InventoryItem[] => db.inventory,
+}
+
+/** Real inventory API access for pages that are ready to opt into backend data. */
+export const inventoryApiService = {
+  list: async (departmentId?: string): Promise<InventoryItem[]> => {
+    if (!isLabArcApiConfigured()) return db.inventory
+    return labarcApi.inventory.list(departmentId)
+  },
+  getById: async (id: string): Promise<InventoryItem | undefined> => {
+    if (!isLabArcApiConfigured()) return db.inventory.find((item) => item.id === id)
+    return labarcApi.inventory.get(id)
+  },
 }
 
 export const qcService = {
