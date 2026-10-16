@@ -22,19 +22,33 @@ const pageData: Record<string, { eyebrow: string; title: string; description: st
   documents: { eyebrow: 'Knowledge', title: 'Documents', description: 'Find procedures, policies, and laboratory knowledge in one place.', metric: '186', metricLabel: 'Published documents', trend: '12 updated' },
   alerts: { eyebrow: 'System', title: 'Alerts', description: 'Review active alerts and keep critical work visible.', metric: '7', metricLabel: 'Active alerts', trend: '2 high priority' },
   settings: { eyebrow: 'System', title: 'Settings', description: 'Configure your LabArc workspace and operational preferences.', metric: '100%', metricLabel: 'Workspace health', trend: 'Up to date' },
+  workspace: { eyebrow: 'Team workspace', title: 'Team workspace', description: 'Coordinate your laboratory team through shared channels, handovers, and operational updates.', metric: '24', metricLabel: 'Active members', trend: '+3 this week' },
 }
 
 const dataFor = (slug: string) => ({
   workforce: workforceService.list(), workflow: workflowService.stages(), equipment: equipmentService.list(), maintenance: maintenanceService.list(), incidents: incidentService.list(), 'quality-control': qcService.list(), tat: tatService.list(), devices: deviceService.list(), integrations: integrationService.list(), documents: knowledgeService.list(), alerts: alertService.list(),
 }[slug] ?? dashboardService.earlyWarnings()) as unknown as Array<Record<string, unknown>>
 
+const channelData: Record<string, { title: string; description: string; metric: string; metricLabel: string; trend: string }> = {
+  general: { title: 'General', description: 'Company-wide updates, announcements, and shared context for the lab team.', metric: '18', metricLabel: 'Unread messages', trend: '3 new today' },
+  operations: { title: 'Operations', description: 'Coordinate workflow, staffing, and daily operational decisions.', metric: '6', metricLabel: 'Open threads', trend: '2 need review' },
+  quality: { title: 'Quality', description: 'Discuss QC exceptions, audits, and quality actions with the team.', metric: '2', metricLabel: 'Open actions', trend: '1 due today' },
+  handover: { title: 'Handover', description: 'Keep shift transitions clear with shared notes and accountable follow-up.', metric: '4', metricLabel: 'Active handovers', trend: 'Next shift in 2h' },
+}
+
 export default async function MockModulePage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params
-  if (slug.length !== 1 || slug[0] === 'dashboard' || slug[0] === 'inventory' || !pageData[slug[0]]) notFound()
-  const key = slug[0]
-  const page = pageData[key]
-  const navItem = allNavItems.find((item) => item.href === `/${key}`)
-  const rows = dataFor(key).slice(0, 5)
+  const isChannel = slug[0] === 'channels' && slug.length === 2 && Boolean(channelData[slug[1]])
+  if (slug.length !== 1 || slug[0] === 'dashboard' || slug[0] === 'inventory' || (!pageData[slug[0]] && !isChannel)) notFound()
+  const key = isChannel ? slug[1] : slug[0]
+  const page = isChannel ? { eyebrow: 'Team workspace', ...channelData[key] } : pageData[key]
+  const navItem = allNavItems.find((item) => item.href === (isChannel ? `/channels/${key}` : `/${key}`))
+  const rows = isChannel ? [
+    { name: 'Shift update · Central Diagnostic Lab', title: 'Maya shared a team update' },
+    { name: 'Pending review · Chemistry bench', title: 'Quality Manager posted a note' },
+    { name: 'Daily stand-up', title: 'Operations team started a thread' },
+    { name: 'Instrument status', title: 'System Bot shared an alert' },
+  ] : dataFor(key).slice(0, 5)
   const rowLabel = (row: Record<string, unknown>, index: number) => String(row.name ?? row.title ?? row.label ?? row.code ?? row.id ?? `${page.title} item ${index + 1}`)
   return (
     <main className="mx-auto w-full max-w-[1440px] space-y-6 p-6 lg:p-8">

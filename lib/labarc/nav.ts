@@ -20,6 +20,8 @@ import {
   Timer,
   Users,
   Workflow,
+  Hash,
+  MessageSquare,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -35,6 +37,16 @@ export interface NavGroup {
 }
 
 export const navGroups: NavGroup[] = [
+  {
+    label: 'Workspace',
+    items: [
+      { label: 'Team workspace', href: '/workspace', icon: MessageSquare },
+      { label: 'General', href: '/channels/general', icon: Hash },
+      { label: 'Operations', href: '/channels/operations', icon: Hash },
+      { label: 'Quality', href: '/channels/quality', icon: Hash },
+      { label: 'Handover', href: '/channels/handover', icon: Hash },
+    ],
+  },
   {
     label: 'Overview',
     items: [{ label: 'Command Center', href: '/dashboard', icon: LayoutDashboard }],
